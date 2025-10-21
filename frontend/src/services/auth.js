@@ -1,24 +1,6 @@
 import api from './api'
-import axios from 'axios'
 
 export const authService = {
-  // Obtener CSRF cookie
-  async getCsrfCookie() {
-    try {
-      // Usar axios directamente para evitar conflictos con la instancia api
-      await axios.get('http://localhost:8000/sanctum/csrf-cookie', { 
-        withCredentials: true,
-        headers: {
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-    } catch (error) {
-      console.warn('No se pudo obtener CSRF cookie:', error)
-      // No lanzar error para no bloquear el flujo
-    }
-  },
-
   // Login
   async login(credentials) {
     try {
@@ -99,5 +81,25 @@ export const authService = {
   getStoredUser() {
     const userStr = localStorage.getItem('user')
     return userStr ? JSON.parse(userStr) : null
+  },
+
+  // Login con Google
+  async loginWithGoogle(credential) {
+    try {
+      const response = await api.post('/auth/google', {
+        credential: credential
+      })
+      
+      const { user, token } = response.data
+      
+      // Guardar token y datos del usuario en localStorage
+      localStorage.setItem('auth_token', token)
+      localStorage.setItem('user', JSON.stringify(user))
+      
+      return { user, token }
+    } catch (error) {
+      console.error('Error en login con Google:', error.response || error)
+      throw error.response?.data || error
+    }
   }
 }

@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 
 const router = createRouter({
@@ -9,8 +8,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
-      meta: { requiresGuest: true, title: 'Iniciar Sesión - Task Manager' }
+      redirect: '/login'
     },
     {
       path: '/login',
@@ -55,13 +53,7 @@ const router = createRouter({
           meta: { title: 'Tareas - Panel de Administración' }
         }
       ]
-    },
-    {
-      path: '/about',
-      name: 'about',
-      component: () => import('../views/AboutView.vue'),
-      meta: { title: 'Acerca de - Task Manager' }
-    },
+    }
   ],
 })
 

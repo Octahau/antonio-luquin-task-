@@ -28,7 +28,6 @@ export const taskService = {
       const response = await api.post('/tasks', taskData)
       return response.data
     } catch (error) {
-      // Mantener el error completo para acceso al status y otros datos
       throw error
     }
   },
@@ -39,7 +38,6 @@ export const taskService = {
       const response = await api.put(`/tasks/${id}`, taskData)
       return response.data
     } catch (error) {
-      // Mantener el error completo para acceso al status y otros datos
       throw error
     }
   },
@@ -50,7 +48,6 @@ export const taskService = {
       const response = await api.delete(`/tasks/${id}`)
       return response.data
     } catch (error) {
-      // Mantener el error completo para acceso al status y otros datos
       throw error
     }
   }

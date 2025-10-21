@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -184,5 +186,160 @@ class AuthController extends Controller
         $user->delete();
 
         return response()->json(['message' => 'Usuario eliminado correctamente']);
+    }
+
+    /**
+     * Redirect to Google OAuth
+     */
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    /**
+     * Handle Google OAuth callback
+     */
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+            
+            // Buscar usuario existente por google_id o email
+            $user = User::where('google_id', $googleUser->id)
+                ->orWhere('email', $googleUser->email)
+                ->first();
+
+            if ($user) {
+                // Usuario existente - actualizar google_id si no lo tiene
+                if (!$user->google_id) {
+                    $user->update([
+                        'google_id' => $googleUser->id,
+                        'avatar' => $googleUser->avatar
+                    ]);
+                }
+            } else {
+                // Crear nuevo usuario
+                $user = User::create([
+                    'name' => $googleUser->name,
+                    'email' => $googleUser->email,
+                    'google_id' => $googleUser->id,
+                    'avatar' => $googleUser->avatar,
+                    'password' => Hash::make(Str::random(24)), // Password aleatorio ya que usamos Google
+                ]);
+
+                // Asignar rol de viewer por defecto
+                $user->assignRole('viewer');
+            }
+
+            $token = $user->createToken('auth-token')->plainTextToken;
+
+            // En lugar de redireccionar, devolver los datos para el frontend
+            return response()->json([
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'avatar' => $user->avatar,
+                    'roles' => $user->getRoleNames(),
+                ],
+                'token' => $token,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al autenticar con Google',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get Google OAuth URL for frontend
+     */
+    public function getGoogleAuthUrl()
+    {
+        $url = Socialite::driver('google')
+            ->stateless()
+            ->redirect()
+            ->getTargetUrl();
+
+        return response()->json(['url' => $url]);
+    }
+
+    /**
+     * Handle Google OAuth authentication from frontend
+     */
+    public function handleGoogleAuth(Request $request)
+    {
+        try {
+            $request->validate([
+                'credential' => 'required|string',
+            ]);
+
+            // Decodificar el JWT de Google
+            $credential = $request->credential;
+            $tokenParts = explode('.', $credential);
+            $payload = json_decode(base64_decode($tokenParts[1]), true);
+
+            // Verificar que es un token válido de Google
+            if (!$payload || $payload['iss'] !== 'https://accounts.google.com') {
+                throw new \Exception('Invalid Google token');
+            }
+
+            // Extraer información del usuario
+            $googleId = $payload['sub'];
+            $email = $payload['email'];
+            $name = $payload['name'];
+            $picture = $payload['picture'] ?? null;
+            
+            // Buscar usuario existente por google_id o email
+            $user = User::where('google_id', $googleId)
+                ->orWhere('email', $email)
+                ->first();
+
+            if ($user) {
+                // Usuario existente - actualizar google_id si no lo tiene
+                if (!$user->google_id) {
+                    $user->update([
+                        'google_id' => $googleId,
+                        'avatar' => $picture
+                    ]);
+                } else {
+                    // Actualizar avatar siempre
+                    $user->update(['avatar' => $picture]);
+                }
+            } else {
+                // Crear nuevo usuario
+                $user = User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'google_id' => $googleId,
+                    'avatar' => $picture,
+                    'password' => Hash::make(Str::random(24)), // Password aleatorio ya que usamos Google
+                ]);
+
+                // Asignar rol de viewer por defecto
+                $user->assignRole('viewer');
+            }
+
+            $token = $user->createToken('auth-token')->plainTextToken;
+
+            return response()->json([
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'avatar' => $user->avatar,
+                    'roles' => $user->getRoleNames(),
+                ],
+                'token' => $token,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al autenticar con Google',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

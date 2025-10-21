@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 📋 Task Manager - Sistema de Gestión de Tareas
 
 Una aplicación web moderna de gestión de tareas desarrollada con **Laravel** y **Vue.js 3**, que incluye autenticación, control de acceso por roles y una interfaz responsive.
@@ -270,9 +269,3 @@ php artisan migrate:fresh --seed
 ## 📄 Licencia
 
 Este proyecto es parte de un ejercicio técnico de desarrollo full-stack.
-
----
-=======
-# antonio-luquin-task-
-Ejercicio Técnico – Sistema de Gestión de Tareas (Laravel + Vue.js)
->>>>>>> origin/main

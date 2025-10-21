@@ -69,6 +69,7 @@
   
 <script lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useTasksStore } from '../stores/tasks'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from '../composables/useToast'
@@ -86,6 +87,7 @@ import { useToast } from '../composables/useToast'
       ConfirmModal
     },
     setup() {
+      const router = useRouter()
       const tasksStore = useTasksStore()
       const authStore = useAuthStore()
       const { success, error } = useToast()
@@ -207,6 +209,7 @@ import { useToast } from '../composables/useToast'
   
       const logout = async () => {
         await authStore.logout()
+        router.push('/login')
       }
   
       onMounted(async () => {

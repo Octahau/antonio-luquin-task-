@@ -114,6 +114,7 @@ class UserTest extends TestCase
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password',
+            'email_verified_at' => now(),
         ]);
 
         $this->assertInstanceOf(\Carbon\Carbon::class, $user->email_verified_at);

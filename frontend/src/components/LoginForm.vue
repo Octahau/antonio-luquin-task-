@@ -1,25 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from '../composables/useToast'
-import GoogleIcon from './icons/GoogleIcon.vue'
+import { authService } from '../services/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const { success, error } = useToast()
+const { success, error: showError } = useToast()
 
 // Reactive data
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
+const isGoogleButtonReady = ref(false)
 const errors = ref<Record<string, string>>({})
-
-// Define emits
-const emit = defineEmits<{
-  'github-login': []
-}>()
 
 // Handle form submission
 const handleSubmit = async (e: Event) => {
@@ -63,17 +59,17 @@ const handleSubmit = async (e: Event) => {
         router.push('/tasks')
       }
     }, 500)
-  } catch (error: unknown) {
-    console.error('Login error:', error)
+  } catch (err: unknown) {
+    console.error('Login error:', err)
     
     // Handle API errors
-    const apiError = error as { errors?: Record<string, string>; message?: string }
+    const apiError = err as { errors?: Record<string, string>; message?: string }
     const errorMessage = apiError.message || 'Error al iniciar sesión. Verifica tus credenciales.'
     
     if (apiError.errors) {
       errors.value = apiError.errors
     } else {
-      error('Error de autenticación', errorMessage)
+      showError('Error de autenticación', errorMessage)
     }
   } finally {
     isLoading.value = false
@@ -85,21 +81,87 @@ const handleSignUp = () => {
   router.push('/register')
 }
 
-// Handle Google login click
-const handleGoogleLogin = () => {
-  emit('github-login') // Reutilizando el emit existente
-}
-
 // Toggle password visibility
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
+
+// Initialize Google Auth on component mount
+onMounted(async () => {
+  // Load Google Auth library
+  if (!(window as any).google && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+    try {
+      await new Promise<void>((resolve) => {
+        const script = document.createElement('script')
+        script.src = 'https://accounts.google.com/gsi/client'
+        script.onload = () => resolve()
+        document.head.appendChild(script)
+      })
+      
+      // Esperar un poco para que Google se cargue completamente
+      setTimeout(() => {
+        if ((window as any).google && (window as any).google.accounts && (window as any).google.accounts.id) {
+          // Inicializar Google Auth
+          (window as any).google.accounts.id.initialize({
+            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+            callback: async (response: any) => {
+              try {
+                const result = await authService.loginWithGoogle(response.credential)
+                
+                // Actualizar el store con los datos del usuario
+                authStore.user = result.user
+                authStore.token = result.token
+                
+                success('Bienvenido', 'Has iniciado sesión correctamente con Google')
+                
+                setTimeout(() => {
+                  if (authStore.isAdmin) {
+                    router.push('/admin')
+                  } else {
+                    router.push('/tasks')
+                  }
+                }, 500)
+              } catch (err: any) {
+                console.error('Error en Google login:', err)
+                showError('Error de autenticación', err.message || 'Error al iniciar sesión con Google')
+              }
+            },
+            auto_select: false,
+            cancel_on_tap_outside: true
+          })
+
+          // Renderizar el botón de Google
+          try {
+            (window as any).google.accounts.id.renderButton(
+              document.getElementById('google-signin-button'),
+              {
+                theme: 'outline',
+                size: 'large',
+                text: 'continue_with',
+                shape: 'rectangular',
+                logo_alignment: 'left'
+              }
+            )
+            isGoogleButtonReady.value = true
+          } catch (renderError) {
+            console.error('Error rendering Google button:', renderError)
+          }
+        }
+      }, 100)
+    } catch (err: any) {
+      console.error('Error loading Google Auth:', err)
+    }
+  }
+})
 </script>
 
 <template>
   <div class="login-form-container">
     <!-- Título principal -->
     <div class="form-header">
+      <div class="logo-container">
+        <i class="pi pi-check-circle logo-icon"></i>
+      </div>
       <h1 class="form-title">
         Task Manager
       </h1>
@@ -164,14 +226,12 @@ const togglePasswordVisibility = () => {
       </div>
       
       <!-- Botón de login con Google -->
-      <button
-        type="button"
-        @click="handleGoogleLogin"
-        class="google-login-btn"
-      >
-        <GoogleIcon class="google-icon" />
-        <span class="google-text">Continuar con Google</span>
-      </button>
+      <div class="google-auth-container">
+        <div 
+          id="google-signin-button"
+          class="google-signin-wrapper"
+        ></div>
+      </div>
       
       <!-- Botón principal de inicio de sesión -->
       <button
@@ -207,6 +267,29 @@ const togglePasswordVisibility = () => {
 .form-header {
   text-align: center;
   margin-bottom: 2rem;
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.logo-icon {
+  font-size: 3.5rem;
+  color: #1d4ed8;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
 }
 
 .form-title {
@@ -342,26 +425,26 @@ const togglePasswordVisibility = () => {
   align-items: center;
   justify-content: center;
   padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--gray-300);
   border-radius: 0.5rem;
-  background-color: #ffffff;
-  color: #374151;
+  background-color: var(--white);
+  color: var(--gray-700);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .google-login-btn:hover {
-  background-color: #f9fafb;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  background-color: var(--gray-50);
+  box-shadow: var(--shadow-md);
 }
 
 .google-login-btn:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+  border-color: var(--primary-blue);
 }
 
 .google-icon {
@@ -440,6 +523,20 @@ const togglePasswordVisibility = () => {
 
 .register-link:hover {
   color: #1e40af;
+}
+
+/* Google Auth Container */
+.google-auth-container {
+  margin-bottom: 1.5rem;
+}
+
+.google-signin-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.google-signin-wrapper iframe {
+  border-radius: 0.75rem;
 }
 
 .register-link:focus {

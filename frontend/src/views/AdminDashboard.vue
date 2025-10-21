@@ -1,9 +1,20 @@
 <template>
   <div class="admin-dashboard">
+    <!-- Mobile Overlay -->
+    <div 
+      v-if="isMobileSidebarOpen" 
+      class="mobile-overlay"
+      @click="closeMobileSidebar"
+    ></div>
+
     <!-- Sidebar -->
-    <aside class="sidebar" :class="{ collapsed: isCollapsed }">
+    <aside class="sidebar" :class="{ 
+      collapsed: isCollapsed, 
+      'mobile-open': isMobileSidebarOpen,
+      'mobile-sidebar': isMobile
+    }">
       <div class="sidebar-header">
-        <h2 v-if="!isCollapsed">Task Manager</h2>
+        <h2 v-if="!isCollapsed || isMobile">Task Manager</h2>
         <button @click="toggleSidebar" class="toggle-btn" :title="isCollapsed ? 'Expandir' : 'Contraer'">
           <i class="pi pi-bars toggle-icon"></i>
         </button>
@@ -15,10 +26,11 @@
               to="/admin" 
               class="nav-item"
               :class="{ active: $route.name === 'admin-dashboard' }"
-              :title="isCollapsed ? 'Inicio / Dashboard' : ''"
+              :title="isCollapsed && !isMobile ? 'Inicio / Dashboard' : ''"
+              @click="closeMobileSidebar"
             >
               <i class="pi pi-th-large nav-icon"></i>
-              <span v-if="!isCollapsed">Inicio / Dashboard</span>
+              <span v-if="!isCollapsed || isMobile">Inicio / Dashboard</span>
             </router-link>
           </li>
           <li>
@@ -26,10 +38,11 @@
               to="/admin/users" 
               class="nav-item"
               :class="{ active: $route.name === 'admin-users' }"
-              :title="isCollapsed ? 'Usuarios' : ''"
+              :title="isCollapsed && !isMobile ? 'Usuarios' : ''"
+              @click="closeMobileSidebar"
             >
               <i class="pi pi-users nav-icon"></i>
-              <span v-if="!isCollapsed">Usuarios</span>
+              <span v-if="!isCollapsed || isMobile">Usuarios</span>
             </router-link>
           </li>
           <li>
@@ -37,10 +50,11 @@
               to="/admin/tasks" 
               class="nav-item"
               :class="{ active: $route.name === 'admin-tasks' }"
-              :title="isCollapsed ? 'Tareas' : ''"
+              :title="isCollapsed && !isMobile ? 'Tareas' : ''"
+              @click="closeMobileSidebar"
             >
               <i class="pi pi-check-square nav-icon"></i>
-              <span v-if="!isCollapsed">Tareas</span>
+              <span v-if="!isCollapsed || isMobile">Tareas</span>
             </router-link>
           </li>
         </ul>
@@ -49,22 +63,30 @@
         <button 
           @click="logout" 
           class="logout-btn"
-          :title="isCollapsed ? 'Cerrar Sesión' : ''"
+          :title="isCollapsed && !isMobile ? 'Cerrar Sesión' : ''"
         >
           <i class="pi pi-sign-out nav-icon"></i>
-          <span v-if="!isCollapsed">Cerrar Sesión</span>
+          <span v-if="!isCollapsed || isMobile">Cerrar Sesión</span>
         </button>
       </div>
     </aside>
 
     <!-- Main Content -->
-    <div class="main-content" :class="{ 'main-content-collapsed': isCollapsed }">
+    <div class="main-content" :class="{ 
+      'main-content-collapsed': isCollapsed && !isMobile,
+      'mobile-main': isMobile
+    }">
       <!-- Header -->
       <header class="dashboard-header">
         <div class="header-content">
-          <h1>{{ pageTitle }}</h1>
+          <div class="header-left">
+            <button v-if="isMobile" @click="openMobileSidebar" class="mobile-menu-btn">
+              <i class="pi pi-bars"></i>
+            </button>
+            <h1>{{ pageTitle }}</h1>
+          </div>
           <div class="user-info">
-            <span class="welcome">Bienvenido, {{ authStore.user?.name }}</span>
+            <span class="welcome">Bienvenido, {{ userName }}</span>
             <div class="role-badge">
               <i class="pi pi-user"></i>
             </div>
@@ -81,7 +103,7 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
@@ -92,6 +114,13 @@ export default {
     const route = useRoute()
     const authStore = useAuthStore()
     const isCollapsed = ref(false)
+    const isMobileSidebarOpen = ref(false)
+    const isMobile = ref(false)
+
+    // Detectar si es móvil
+    const checkIsMobile = () => {
+      isMobile.value = window.innerWidth <= 768
+    }
 
     // Computed property para el título dinámico
     const pageTitle = computed(() => {
@@ -108,8 +137,26 @@ export default {
       }
     })
 
+    // Computed property para el nombre del usuario
+    const userName = computed(() => {
+      const user = authStore.user
+      return user && typeof user === 'object' && 'name' in user ? (user as { name: string }).name : 'Usuario'
+    })
+
     const toggleSidebar = () => {
-      isCollapsed.value = !isCollapsed.value
+      if (isMobile.value) {
+        isMobileSidebarOpen.value = !isMobileSidebarOpen.value
+      } else {
+        isCollapsed.value = !isCollapsed.value
+      }
+    }
+
+    const openMobileSidebar = () => {
+      isMobileSidebarOpen.value = true
+    }
+
+    const closeMobileSidebar = () => {
+      isMobileSidebarOpen.value = false
     }
 
     const logout = async () => {
@@ -119,6 +166,9 @@ export default {
 
     // Verificar que el usuario sea admin al montar y redirigir si es necesario
     onMounted(() => {
+      checkIsMobile()
+      window.addEventListener('resize', checkIsMobile)
+      
       if (!authStore.isAdmin) {
         router.push('/tasks')
         return
@@ -130,12 +180,21 @@ export default {
       }
     })
 
+    onUnmounted(() => {
+      window.removeEventListener('resize', checkIsMobile)
+    })
+
     return {
       authStore,
       isCollapsed,
+      isMobileSidebarOpen,
+      isMobile,
       toggleSidebar,
+      openMobileSidebar,
+      closeMobileSidebar,
       logout,
-      pageTitle
+      pageTitle,
+      userName
     }
   }
 }
@@ -146,6 +205,19 @@ export default {
   display: flex;
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+}
+
+/* Mobile Overlay */
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  cursor: pointer;
 }
 
 /* Sidebar */
@@ -365,6 +437,45 @@ export default {
   transform: translateY(-1px);
 }
 
+/* Mobile Sidebar Styles */
+.sidebar.mobile-sidebar {
+  transform: translateX(-100%);
+  z-index: 999;
+  transition: transform 0.3s ease;
+}
+
+.sidebar.mobile-sidebar.mobile-open {
+  transform: translateX(0);
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  color: var(--gray-600);
+  transition: all 0.3s ease;
+  margin-right: 1rem;
+}
+
+.mobile-menu-btn:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: var(--primary-blue);
+}
+
+.mobile-menu-btn i {
+  font-size: 1.25rem;
+}
+
+/* Header Left */
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
 /* Main Content */
 .main-content {
   flex: 1;
@@ -443,54 +554,135 @@ export default {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .admin-dashboard {
-    flex-direction: column;
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 240px;
   }
   
-  .sidebar {
-    width: 100%;
-    height: auto;
-    order: 2;
-    position: relative;
-    left: auto;
-    top: auto;
+  .sidebar.collapsed {
+    width: 70px;
   }
   
   .main-content {
-    order: 1;
+    margin-left: 240px;
+  }
+  
+  .main-content.main-content-collapsed {
+    margin-left: 70px;
+  }
+  
+  .content-area {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Mobile Menu Button */
+  .mobile-menu-btn {
+    display: block;
+  }
+  
+  /* Sidebar Mobile */
+  .sidebar.mobile-sidebar {
+    width: 280px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translateX(-100%);
+    z-index: 999;
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar.mobile-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  
+  /* Main Content Mobile */
+  .main-content.mobile-main {
     margin-left: 0 !important;
+    width: 100%;
   }
   
-  .sidebar-nav {
-    display: flex;
-    overflow-x: auto;
-  }
-  
-  .sidebar-nav ul {
-    display: flex;
-    gap: 1rem;
-    padding: 0 1rem;
-  }
-  
-  .sidebar-nav li {
-    margin-bottom: 0;
-    flex-shrink: 0;
-  }
-  
-  .nav-item {
-    padding: 0.75rem 1rem;
-    white-space: nowrap;
+  .dashboard-header {
+    padding: 1rem;
   }
   
   .header-content {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 1.25rem;
   }
   
   .content-area {
     padding: 1rem;
+  }
+  
+  /* Sidebar Navigation Mobile */
+  .sidebar.mobile-sidebar .sidebar-nav {
+    flex: 1;
+    padding: 1rem 0;
+    overflow-y: auto;
+  }
+  
+  .sidebar.mobile-sidebar .sidebar-nav ul {
+    display: block;
+    padding: 0;
+  }
+  
+  .sidebar.mobile-sidebar .sidebar-nav li {
+    margin-bottom: 0.5rem;
+  }
+  
+  .sidebar.mobile-sidebar .nav-item {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .sidebar.mobile-sidebar .nav-item span {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-header h2 {
+    font-size: 1.25rem;
+  }
+  
+  .dashboard-header {
+    padding: 0.75rem;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 1.125rem;
+  }
+  
+  .welcome {
+    font-size: 0.8rem;
+  }
+  
+  .content-area {
+    padding: 0.75rem;
+  }
+  
+  .nav-item {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .logout-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
   }
 }
 </style>

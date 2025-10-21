@@ -9,17 +9,20 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   },
-  // withCredentials temporalmente removido para evitar conflictos con CSRF
+  withCredentials: true, // Necesario para CSRF cookies
 })
 
 // Interceptor para agregar el token de autenticación automáticamente
 api.interceptors.request.use(
   (config) => {
+    // Agregar token de autenticación si existe
     const token = localStorage.getItem('auth_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
     return config
   },
   (error) => {
@@ -30,9 +33,9 @@ api.interceptors.request.use(
 // Interceptor para manejar errores de autenticación
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // Token expirado o inválido
+  async (error) => {
+    if (error.response?.status === 401) {
+      // Token expirado o inválido - limpiar y redirigir
       localStorage.removeItem('auth_token')
       localStorage.removeItem('user')
       window.location.href = '/login'

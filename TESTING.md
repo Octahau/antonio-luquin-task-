@@ -1,294 +1,398 @@
-# Comprehensive Testing Suite
+Suite de Pruebas Integral
 
-This document describes the complete testing setup for the task management system, covering both backend (Laravel) and frontend (Vue.js) components.
+Este documento describe la configuración completa de pruebas para el sistema de gestión de tareas, cubriendo tanto el backend (Laravel) como el frontend (Vue.js).
 
-## 🧪 Test Coverage Overview
+🧪 Resumen de Cobertura de Pruebas
+Pruebas Backend (Laravel + PHPUnit)
+Pruebas Unitarias
 
-### Backend Tests (Laravel + PHPUnit)
+Pruebas del Modelo User (tests/Unit/UserTest.php)
 
-#### Unit Tests
-- **User Model Tests** (`tests/Unit/UserTest.php`)
-  - User creation and validation
-  - Password hashing
-  - Role management
-  - API token creation
-  - Model relationships and attributes
+Creación y validación de usuarios
 
-- **Task Model Tests** (`tests/Unit/TaskTest.php`)
-  - Task creation and validation
-  - User relationships
-  - Status management
-  - Date casting and validation
+Hashing de contraseñas
 
-#### Feature Tests
-- **Authentication Tests** (`tests/Feature/AuthTest.php`)
-  - User registration and validation
-  - Login/logout functionality
-  - Token management
-  - Profile access
-  - Error handling
+Gestión de roles
 
-- **User Management Tests** (`tests/Feature/UserManagementTest.php`)
-  - Admin user CRUD operations
-  - Role-based access control
-  - User validation and updates
-  - Authorization checks
+Creación de tokens API
 
-- **Task Management Tests** (`tests/Feature/TaskManagementTest.php`)
-  - Task CRUD operations
-  - Role-based permissions
-  - Task assignment and filtering
-  - Status updates and validation
+Relaciones y atributos del modelo
 
-- **Middleware Tests** (`tests/Feature/MiddlewareTest.php`)
-  - Sanctum authentication
-  - CORS handling
-  - Token validation
-  - Error scenarios
+Pruebas del Modelo Task (tests/Unit/TaskTest.php)
 
-- **Integration Tests** (`tests/Feature/IntegrationTest.php`)
-  - Complete user workflows
-  - End-to-end task management
-  - Data consistency
-  - Concurrent operations
+Creación y validación de tareas
 
-### Frontend Tests (Vue.js + Vitest)
+Relaciones con usuarios
 
-#### Component Tests
-- **LoginForm Tests** (`src/test/components/LoginForm.test.ts`)
-  - Form rendering and validation
-  - User input handling
-  - Error state management
-  - API integration
+Gestión de estados
 
-- **TaskCard Tests** (`src/test/components/TaskCard.test.ts`)
-  - Task display and formatting
-  - User interactions
-  - Status indicators
-  - Accessibility features
+Validación y conversión de fechas
 
-#### Service Tests
-- **Auth Service Tests** (`src/test/services/auth.test.ts`)
-  - API call handling
-  - Token management
-  - Error handling
-  - Response processing
+Pruebas de Características (Feature Tests)
 
-#### Store Tests
-- **Auth Store Tests** (`src/test/stores/auth.test.ts`)
-  - State management
-  - Actions and mutations
-  - Computed properties
-  - Error handling
+Pruebas de Autenticación (tests/Feature/AuthTest.php)
 
-## 🚀 Running Tests
+Registro y validación de usuarios
 
-### Quick Start
-```bash
-# Run all tests
+Funcionalidad de login/logout
+
+Gestión de tokens
+
+Acceso a perfil
+
+Manejo de errores
+
+Pruebas de Gestión de Usuarios (tests/Feature/UserManagementTest.php)
+
+Operaciones CRUD del administrador
+
+Control de acceso basado en roles
+
+Validación y actualización de usuarios
+
+Verificación de autorizaciones
+
+Pruebas de Gestión de Tareas (tests/Feature/TaskManagementTest.php)
+
+Operaciones CRUD de tareas
+
+Permisos basados en rol
+
+Asignación y filtrado de tareas
+
+Actualización de estado y validación
+
+Pruebas de Middleware (tests/Feature/MiddlewareTest.php)
+
+Autenticación con Sanctum
+
+Manejo de CORS
+
+Validación de tokens
+
+Escenarios de error
+
+Pruebas de Integración (tests/Feature/IntegrationTest.php)
+
+Flujo completo de usuarios
+
+Gestión integral de tareas
+
+Consistencia de datos
+
+Operaciones concurrentes
+
+Pruebas Frontend (Vue.js + Vitest)
+Pruebas de Componentes
+
+Pruebas del LoginForm (src/test/components/LoginForm.test.ts)
+
+Renderizado y validación del formulario
+
+Manejo de entradas del usuario
+
+Estados de error
+
+Integración con la API
+
+Pruebas del TaskCard (src/test/components/TaskCard.test.ts)
+
+Visualización y formato de tareas
+
+Interacciones del usuario
+
+Indicadores de estado
+
+Accesibilidad
+
+Pruebas de Servicios
+
+Pruebas del Servicio Auth (src/test/services/auth.test.ts)
+
+Manejo de llamadas a la API
+
+Gestión de tokens
+
+Manejo de errores
+
+Procesamiento de respuestas
+
+Pruebas del Store
+
+Pruebas del Auth Store (src/test/stores/auth.test.ts)
+
+Gestión del estado
+
+Acciones y mutaciones
+
+Propiedades computadas
+
+Manejo de errores
+
+🚀 Ejecución de Pruebas
+Inicio Rápido
+# Ejecutar todas las pruebas
 ./run-tests.sh
-```
 
-### Backend Tests
-```bash
+Pruebas Backend
 cd backend
 
-# Run all tests
+# Todas las pruebas
 php artisan test
 
-# Run specific test suites
+# Pruebas específicas
 php artisan test tests/Unit
 php artisan test tests/Feature
 
-# Run with coverage
+# Con cobertura
 php artisan test --coverage
 
-# Run specific test file
+# Archivo de prueba específico
 php artisan test tests/Feature/AuthTest.php
-```
 
-### Frontend Tests
-```bash
+Pruebas Frontend
 cd frontend
 
-# Run all tests
+# Todas las pruebas
 npm run test
 
-# Run tests in watch mode
+# Modo observación
 npm run test:ui
 
-# Run tests once
+# Una sola ejecución
 npm run test:run
 
-# Run with coverage
+# Con cobertura
 npm run test:coverage
 
-# Run specific test files
+# Archivos específicos
 npm run test:run src/test/components
 npm run test:run src/test/services
 npm run test:run src/test/stores
-```
 
-## 📊 Test Statistics
+📊 Estadísticas de Pruebas
+Cobertura Backend
 
-### Backend Test Coverage
-- **Unit Tests**: 15+ test cases
-- **Feature Tests**: 80+ test cases
-- **Integration Tests**: 10+ comprehensive workflows
-- **Total Backend Tests**: 100+ test cases
+Unitarias: 15+ casos de prueba
 
-### Frontend Test Coverage
-- **Component Tests**: 20+ test cases per component
-- **Service Tests**: 15+ test cases per service
-- **Store Tests**: 25+ test cases per store
-- **Total Frontend Tests**: 60+ test cases
+Feature Tests: 80+ casos
 
-## 🔧 Test Configuration
+Integración: 10+ flujos completos
 
-### Backend Configuration
-- **Framework**: PHPUnit
-- **Database**: SQLite in-memory for testing
-- **Environment**: Testing environment with isolated data
-- **Coverage**: Model, Controller, and Middleware coverage
+Total: más de 100 casos
 
-### Frontend Configuration
-- **Framework**: Vitest + Vue Test Utils
-- **Environment**: jsdom for DOM simulation
-- **Mocking**: Axios and external dependencies
-- **Coverage**: Component, Service, and Store coverage
+Cobertura Frontend
 
-## 📋 Test Categories
+Componentes: 20+ casos por componente
 
-### 1. Unit Tests
-- Test individual components in isolation
-- Mock external dependencies
-- Focus on specific functionality
-- Fast execution
+Servicios: 15+ por servicio
 
-### 2. Integration Tests
-- Test component interactions
-- Test API endpoints with database
-- Test complete workflows
-- Verify data consistency
+Stores: 25+ por store
 
-### 3. Feature Tests
-- Test user-facing functionality
-- Test complete user journeys
-- Test error scenarios
-- Test edge cases
+Total: más de 60 casos
 
-### 4. End-to-End Tests
-- Test complete system workflows
-- Test cross-component interactions
-- Test real-world scenarios
-- Test performance and reliability
+🔧 Configuración de Pruebas
+Backend
 
-## 🛠️ Test Utilities
+Framework: PHPUnit
 
-### Backend Test Helpers
-- `createUserWithRole()` - Create users with specific roles
-- `createTaskForUser()` - Create tasks for specific users
-- Database seeding and cleanup
-- Authentication token generation
+Base de datos: SQLite en memoria para pruebas
 
-### Frontend Test Helpers
-- Mock API responses
-- Component mounting utilities
-- Store state management
-- Event simulation
+Entorno: Datos aislados en entorno de testing
 
-## 📈 Continuous Integration
+Cobertura: Modelos, controladores y middleware
 
-### Test Automation
-- Tests run on every commit
-- Automated test reporting
-- Coverage tracking
-- Performance monitoring
+Frontend
 
-### Quality Gates
-- Minimum 80% code coverage
-- All tests must pass
-- No critical security issues
-- Performance benchmarks met
+Framework: Vitest + Vue Test Utils
 
-## 🐛 Debugging Tests
+Entorno: jsdom para simulación del DOM
 
-### Backend Debugging
-```bash
-# Run tests with verbose output
+Mocks: Axios y dependencias externas
+
+Cobertura: Componentes, servicios y stores
+
+📋 Categorías de Pruebas
+1. Unitarias
+
+Componentes individuales en aislamiento
+
+Simulación de dependencias externas
+
+Enfoque en funcionalidad puntual
+
+Ejecución rápida
+
+2. Integración
+
+Interacción entre componentes
+
+Endpoints con base de datos
+
+Flujos completos
+
+Verificación de consistencia
+
+3. Feature Tests
+
+Funcionalidad visible al usuario
+
+Flujos de usuario completos
+
+Escenarios de error
+
+Casos límite
+
+4. End-to-End
+
+Flujos completos del sistema
+
+Interacción entre componentes
+
+Escenarios reales
+
+Pruebas de rendimiento y fiabilidad
+
+🛠️ Utilidades de Pruebas
+Backend
+
+createUserWithRole() — Crea usuarios con roles específicos
+
+createTaskForUser() — Crea tareas para usuarios específicos
+
+Limpieza y seeding de base de datos
+
+Generación de tokens de autenticación
+
+Frontend
+
+Simulación de respuestas API
+
+Utilidades de montaje de componentes
+
+Gestión del estado del store
+
+Simulación de eventos
+
+📈 Integración Continua
+Automatización
+
+Ejecución de pruebas en cada commit
+
+Reportes automáticos
+
+Seguimiento de cobertura
+
+Monitoreo de rendimiento
+
+Reglas de Calidad
+
+Mínimo 80% de cobertura
+
+Todas las pruebas deben pasar
+
+Sin vulnerabilidades críticas
+
+Cumplimiento de benchmarks de rendimiento
+
+🐛 Depuración
+Backend
+# Salida detallada
 php artisan test --verbose
 
-# Run specific test with debugging
+# Prueba específica con detalles
 php artisan test tests/Feature/AuthTest.php --verbose
 
-# Check database state
+# Ver estado de base de datos
 php artisan tinker
-```
 
-### Frontend Debugging
-```bash
-# Run tests with UI
+Frontend
+# Interfaz visual
 npm run test:ui
 
-# Run tests in debug mode
+# Modo debug
 npm run test:run -- --reporter=verbose
 
-# Check test coverage
+# Revisar cobertura
 npm run test:coverage
-```
 
-## 📚 Best Practices
+📚 Buenas Prácticas
+Escritura
 
-### Test Writing
-1. **Arrange-Act-Assert** pattern
-2. **Descriptive test names**
-3. **Single responsibility per test**
-4. **Mock external dependencies**
-5. **Test edge cases and errors**
+Patrón Arrange–Act–Assert
 
-### Test Maintenance
-1. **Keep tests up to date**
-2. **Refactor tests with code changes**
-3. **Remove obsolete tests**
-4. **Monitor test performance**
-5. **Regular test review**
+Nombres descriptivos
 
-## 🔍 Test Monitoring
+Una responsabilidad por prueba
 
-### Metrics Tracked
-- Test execution time
-- Test pass/fail rates
-- Code coverage percentage
-- Flaky test identification
-- Performance regression detection
+Simular dependencias externas
 
-### Reporting
-- Test results dashboard
-- Coverage reports
-- Performance metrics
-- Failure analysis
-- Trend tracking
+Cubrir casos límite y errores
 
-## 🎯 Future Enhancements
+Mantenimiento
 
-### Planned Improvements
-- [ ] Visual regression testing
-- [ ] Load testing integration
-- [ ] Security testing automation
-- [ ] Cross-browser testing
-- [ ] Mobile testing support
+Mantener las pruebas actualizadas
 
-### Test Expansion
-- [ ] More component test coverage
-- [ ] API contract testing
-- [ ] Database migration testing
-- [ ] Third-party integration testing
-- [ ] Accessibility testing
+Refactorizar junto con el código
 
----
+Eliminar pruebas obsoletas
 
-## 📞 Support
+Monitorear rendimiento
 
-For questions about the testing setup or to report test-related issues, please refer to the development team or create an issue in the project repository.
+Revisiones periódicas
 
-**Happy Testing! 🧪✨**
+🔍 Monitoreo de Pruebas
+Métricas
+
+Tiempo de ejecución
+
+Tasa de éxito/fallo
+
+Porcentaje de cobertura
+
+Detección de pruebas inestables
+
+Revisión de rendimiento
+
+Reportes
+
+Panel de resultados
+
+Informes de cobertura
+
+Métricas de rendimiento
+
+Análisis de fallos
+
+Seguimiento de tendencias
+
+🎯 Mejoras Futuras
+Próximas Implementaciones
+
+ Pruebas de regresión visual
+
+ Integración de pruebas de carga
+
+ Automatización de pruebas de seguridad
+
+ Pruebas cruzadas entre navegadores
+
+ Soporte para testing móvil
+
+Expansión de Pruebas
+
+ Más cobertura en componentes
+
+ Pruebas de contrato de API
+
+ Verificación de migraciones
+
+ Pruebas de integraciones externas
+
+ Pruebas de accesibilidad
+
+📞 Soporte
+
+Para consultas sobre la configuración de pruebas o reportar problemas relacionados, contactá al equipo de desarrollo o creá un issue en el repositorio del proyecto.
+
+¡Felices pruebas! 🧪✨

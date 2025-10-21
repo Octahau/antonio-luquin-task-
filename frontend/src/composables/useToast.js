@@ -24,7 +24,7 @@ const addToast = (options) => {
     type: options.type || 'success',
     title: options.title || '',
     description: options.description || '',
-    duration: options.duration || 4000,
+    duration: options.duration || 3500,
     autoClose: options.autoClose !== false
   })
 
@@ -42,7 +42,7 @@ const addToast = (options) => {
 
 export function useToast() {
 
-  const success = (title, description = '', duration = 4000) => {
+  const success = (title, description = '', duration = 3500) => {
     return addToast({
       type: 'success',
       title,
@@ -51,7 +51,7 @@ export function useToast() {
     })
   }
 
-  const error = (title, description = '', duration = 5000) => {
+  const error = (title, description = '', duration = 3500) => {
     return addToast({
       type: 'error',
       title,
@@ -60,7 +60,7 @@ export function useToast() {
     })
   }
 
-  const warning = (title, description = '', duration = 4000) => {
+  const warning = (title, description = '', duration = 3500) => {
     return addToast({
       type: 'warning',
       title,
@@ -69,7 +69,7 @@ export function useToast() {
     })
   }
 
-  const info = (title, description = '', duration = 4000) => {
+  const info = (title, description = '', duration = 3500) => {
     return addToast({
       type: 'info',
       title,

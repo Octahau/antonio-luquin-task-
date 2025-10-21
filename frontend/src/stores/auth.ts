@@ -65,7 +65,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function initializeAuth() {
+  async function initializeAuth() {
     const storedToken = authService.getToken()
     const storedUser = authService.getStoredUser()
     

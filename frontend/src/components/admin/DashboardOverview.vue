@@ -66,7 +66,7 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useTasksStore } from '../../stores/tasks'
 
 export default {
@@ -150,13 +150,26 @@ export default {
     const createChart = (data) => {
       if (!chartCanvas.value) return
 
-      const ctx = chartCanvas.value.getContext('2d')
+      // Esperar un frame para asegurar que el DOM esté actualizado
+      requestAnimationFrame(() => {
+        const ctx = chartCanvas.value.getContext('2d')
+        drawChart(ctx, data)
+      })
+    }
+
+    const drawChart = (ctx, data) => {
+      if (!chartCanvas.value) return
       
       // Datos del gráfico
       const months = Object.keys(data).map(key => {
         const [year, month] = key.split('-')
         const date = new Date(year, month - 1)
-        return date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
+        // Formato más corto para móviles
+        const isMobile = window.innerWidth <= 768
+        return date.toLocaleDateString('es-ES', { 
+          month: isMobile ? 'short' : 'short', 
+          year: '2-digit' 
+        })
       })
       
       const values = Object.values(data)
@@ -164,45 +177,90 @@ export default {
       // Crear gráfico simple usando canvas
       const canvas = chartCanvas.value
       const rect = canvas.getBoundingClientRect()
-      canvas.width = rect.width * window.devicePixelRatio
-      canvas.height = rect.height * window.devicePixelRatio
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
-      canvas.style.width = rect.width + 'px'
-      canvas.style.height = rect.height + 'px'
-
+      
+      // Usar el tamaño real del contenedor
+      canvas.width = rect.width
+      canvas.height = rect.height
+      
+      // Configuración responsiva
+      const isMobile = rect.width < 600
+      const barSpacing = isMobile ? 0.05 : 0.1
+      const labelAreaHeight = isMobile ? 40 : 60
+      const valueLabelOffset = isMobile ? 15 : 30
+      const fontSize = isMobile ? '10px' : '12px'
+      const monthFontSize = isMobile ? '8px' : '10px'
+      
       const maxValue = Math.max(...values, 1)
-      const barWidth = rect.width / months.length
-      const maxHeight = rect.height - 60
+      const availableWidth = rect.width - (valueLabelOffset * 2)
+      const barWidth = availableWidth / months.length
+      const maxHeight = rect.height - labelAreaHeight
+      const padding = barWidth * barSpacing
 
       // Limpiar canvas
       ctx.clearRect(0, 0, rect.width, rect.height)
 
       // Dibujar barras
       months.forEach((month, index) => {
-        const barHeight = (values[index] / maxValue) * maxHeight
-        const x = index * barWidth + barWidth * 0.1
-        const y = rect.height - barHeight - 30
+        if (values[index] === 0) return
+        
+        const barHeight = Math.max((values[index] / maxValue) * maxHeight, 2) // Mínimo 2px de altura
+        const x = valueLabelOffset + index * barWidth + padding
+        const y = rect.height - barHeight - (labelAreaHeight / 2)
+        const actualBarWidth = barWidth - (padding * 2)
 
         // Color de la barra
         ctx.fillStyle = '#667eea'
-        ctx.fillRect(x, y, barWidth * 0.8, barHeight)
+        ctx.fillRect(x, y, actualBarWidth, barHeight)
 
-        // Etiqueta del valor
-        ctx.fillStyle = '#374151'
-        ctx.font = '12px Inter, sans-serif'
-        ctx.textAlign = 'center'
-        ctx.fillText(values[index].toString(), x + barWidth * 0.4, y - 5)
+        // Etiqueta del valor (solo si hay espacio suficiente)
+        if (!isMobile || actualBarWidth > 20) {
+          ctx.fillStyle = '#374151'
+          ctx.font = `${fontSize} Inter, sans-serif`
+          ctx.textAlign = 'center'
+          ctx.fillText(
+            values[index].toString(), 
+            x + actualBarWidth / 2, 
+            Math.max(y - 5, 15)
+          )
+        }
 
         // Etiqueta del mes
         ctx.fillStyle = '#6b7280'
-        ctx.font = '10px Inter, sans-serif'
+        ctx.font = `${monthFontSize} Inter, sans-serif`
         ctx.textAlign = 'center'
-        ctx.fillText(month, x + barWidth * 0.4, rect.height - 10)
+        
+        // Rotar texto del mes en móviles si es necesario
+        if (isMobile && month.length > 8) {
+          ctx.save()
+          ctx.translate(x + actualBarWidth / 2, rect.height - 5)
+          ctx.rotate(-Math.PI / 4)
+          ctx.fillText(month.substring(0, 6) + '...', 0, 0)
+          ctx.restore()
+        } else {
+          ctx.fillText(month, x + actualBarWidth / 2, rect.height - 10)
+        }
       })
+    }
+
+    // Listener para redibujar el gráfico en resize
+    let resizeTimeout
+    const resizeHandler = () => {
+      if (chartCanvas.value) {
+        // Debounce para evitar demasiadas redraws
+        clearTimeout(resizeTimeout)
+        resizeTimeout = setTimeout(() => {
+          loadChartData()
+        }, 150)
+      }
     }
 
     onMounted(() => {
       loadMetrics()
+      window.addEventListener('resize', resizeHandler)
+    })
+
+    onUnmounted(() => {
+      window.removeEventListener('resize', resizeHandler)
     })
 
     return {
@@ -366,9 +424,35 @@ export default {
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .metric-card {
+    padding: 1.5rem;
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .metric-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .chart-container {
+    height: 350px;
+  }
+}
+
 @media (max-width: 768px) {
   .overview-header h2 {
     font-size: 2rem;
+  }
+  
+  .overview-header p {
+    font-size: 1rem;
   }
   
   .metrics-grid {
@@ -378,14 +462,84 @@ export default {
   
   .metric-card {
     padding: 1.5rem;
+    flex-direction: row;
+    align-items: center;
   }
   
   .metric-content h3 {
     font-size: 2rem;
   }
   
+  .metric-content p {
+    font-size: 0.9rem;
+  }
+  
+  .metric-content small {
+    font-size: 0.8rem;
+  }
+  
+  .chart-section {
+    padding: 1.5rem;
+  }
+  
+  .chart-header h3 {
+    font-size: 1.25rem;
+  }
+  
   .chart-container {
     height: 300px;
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .overview-header {
+    margin-bottom: 2rem;
+  }
+  
+  .overview-header h2 {
+    font-size: 1.75rem;
+  }
+  
+  .overview-header p {
+    font-size: 0.9rem;
+  }
+  
+  .metrics-grid {
+    gap: 1rem;
+  }
+  
+  .metric-card {
+    padding: 1rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .metric-icon {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .metric-icon i {
+    font-size: 1.25rem;
+  }
+  
+  .metric-content h3 {
+    font-size: 1.75rem;
+  }
+  
+  .chart-section {
+    padding: 1rem;
+  }
+  
+  .chart-header h3 {
+    font-size: 1.125rem;
+  }
+  
+  .chart-container {
+    height: 250px;
+    padding: 0.5rem;
   }
 }
 </style>

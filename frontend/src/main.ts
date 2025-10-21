@@ -16,6 +16,8 @@ app.use(router)
 
 // Inicializar autenticación
 const authStore = useAuthStore()
-authStore.initializeAuth()
+authStore.initializeAuth().catch(error => {
+  console.warn('Error inicializando autenticación:', error)
+})
 
 app.mount('#app')

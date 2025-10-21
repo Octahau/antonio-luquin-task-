@@ -3,7 +3,7 @@
     <div class="login-wrapper">
       <!-- Login Form Container -->
       <div class="login-card">
-        <LoginForm @github-login="handleGitHubLogin" />
+        <LoginForm />
       </div>
     </div>
   </div>
@@ -11,10 +11,6 @@
 
 <script setup lang="ts">
 import LoginForm from '../components/LoginForm.vue'
-
-const handleGitHubLogin = () => {
-  console.log('GitHub login clicked')
-}
 </script>
 
 <style scoped>

@@ -396,25 +396,124 @@ export default {
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .tasks-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .filters {
+    gap: 0.75rem;
+  }
+  
+  .user-filter,
+  .month-filter {
+    min-width: 120px;
+  }
+}
+
 @media (max-width: 768px) {
+  .tasks-header {
+    margin-bottom: 1.5rem;
+  }
+  
+  .header-content {
+    margin-bottom: 1.5rem;
+  }
+  
+  .header-content h2 {
+    font-size: 1.75rem;
+  }
+  
+  .header-content p {
+    font-size: 1rem;
+  }
+  
   .header-actions {
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
   }
   
   .filters {
     flex-direction: column;
     gap: 0.75rem;
+    width: 100%;
   }
   
   .status-filter,
   .user-filter,
   .month-filter {
     width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9rem;
+  }
+  
+  .btn-primary {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
   }
   
   .tasks-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .loading,
+  .empty-state {
+    padding: 2rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tasks-header {
+    margin-bottom: 1rem;
+  }
+  
+  .header-content {
+    margin-bottom: 1rem;
+  }
+  
+  .header-content h2 {
+    font-size: 1.5rem;
+  }
+  
+  .header-content p {
+    font-size: 0.9rem;
+  }
+  
+  .header-actions {
+    gap: 0.75rem;
+  }
+  
+  .filters {
+    gap: 0.5rem;
+  }
+  
+  .status-filter,
+  .user-filter,
+  .month-filter {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+  }
+  
+  .btn-primary {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+  }
+  
+  .tasks-grid {
+    gap: 1rem;
+  }
+  
+  .loading,
+  .empty-state {
+    padding: 1.5rem 0.75rem;
+    font-size: 0.9rem;
   }
 }
 </style>

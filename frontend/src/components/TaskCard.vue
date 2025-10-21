@@ -288,6 +288,21 @@ export default {
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+  .task-card {
+    padding: 1.25rem;
+  }
+  
+  .task-title {
+    font-size: 1.125rem;
+  }
+  
+  .task-description,
+  .no-description {
+    font-size: 0.9rem;
+  }
+}
+
 @media (max-width: 640px) {
   .task-card {
     padding: 1rem;
@@ -303,16 +318,74 @@ export default {
     align-self: flex-start;
   }
   
+  .task-title {
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+  
+  .task-description,
+  .no-description {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .task-meta {
+    gap: 0.375rem;
+  }
+  
+  .due-date,
+  .created-info {
+    font-size: 0.8rem;
+  }
+  
   .task-card-footer {
     flex-direction: column;
+    gap: 0.5rem;
   }
   
   .btn-view,
   .btn-edit,
   .btn-delete {
     flex: none;
-    padding: 0.75rem;
+    padding: 0.75rem 0.5rem;
     font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .task-card {
+    padding: 0.875rem;
+  }
+  
+  .task-title {
+    font-size: 0.95rem;
+  }
+  
+  .task-description,
+  .no-description {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .task-meta {
+    gap: 0.25rem;
+  }
+  
+  .due-date,
+  .created-info {
+    font-size: 0.75rem;
+    gap: 0.375rem;
+  }
+  
+  .task-card-footer {
+    gap: 0.375rem;
+  }
+  
+  .btn-view,
+  .btn-edit,
+  .btn-delete {
+    padding: 0.625rem 0.5rem;
+    font-size: 0.8rem;
   }
 }
 </style>

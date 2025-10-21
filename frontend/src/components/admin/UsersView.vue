@@ -538,22 +538,139 @@ export default {
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .users-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .search-input {
+    width: 250px;
+  }
+}
+
 @media (max-width: 768px) {
+  .users-header {
+    margin-bottom: 1.5rem;
+  }
+  
   .header-content {
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .users-header h2 {
+    font-size: 1.75rem;
+  }
+  
+  .header-actions {
+    width: 100%;
+  }
+  
+  .search-container {
+    width: 100%;
   }
   
   .search-input {
     width: 100%;
+    padding: 0.625rem 0.875rem 0.625rem 2.5rem;
+    font-size: 0.9rem;
   }
   
   .users-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .user-card {
+    padding: 1.25rem;
+  }
+  
+  .user-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .user-info {
+    width: 100%;
+  }
+  
+  .user-role {
+    align-self: flex-end;
   }
   
   .user-card-footer {
     flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .user-card-footer button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .users-header {
+    margin-bottom: 1rem;
+  }
+  
+  .users-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .search-input {
+    padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+  }
+  
+  .search-icon {
+    left: 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .users-grid {
+    gap: 1rem;
+  }
+  
+  .user-card {
+    padding: 1rem;
+  }
+  
+  .user-card-header {
+    gap: 0.75rem;
+  }
+  
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .user-info h3 {
+    font-size: 1rem;
+  }
+  
+  .user-info p {
+    font-size: 0.8rem;
+  }
+  
+  .role-badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+  }
+  
+  .user-card-footer button {
+    padding: 0.625rem;
+    font-size: 0.8rem;
+  }
+  
+  .loading,
+  .empty-state {
+    padding: 2rem 1rem;
+    font-size: 1rem;
   }
 }
 </style>

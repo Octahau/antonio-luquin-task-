@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
+// Rutas de Google OAuth
+Route::get('/auth/google/url', [AuthController::class, 'getGoogleAuthUrl']);
+Route::post('/auth/google', [AuthController::class, 'handleGoogleAuth']);
+
 // Rutas protegidas con Sanctum
 Route::middleware('auth:sanctum')->group(function () {
     // Autenticación

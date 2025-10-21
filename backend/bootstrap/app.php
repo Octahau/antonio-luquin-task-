@@ -12,10 +12,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Temporalmente comentado para solucionar el error 419
+        // Temporalmente deshabilitamos CSRF para continuar con el desarrollo
         // $middleware->api(prepend: [
         //     \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         // ]);
+
+        // Agregar middleware para headers Cross-Origin (Google OAuth)
+        $middleware->web(append: [
+            \App\Http\Middleware\SetCrossOriginHeaders::class,
+        ]);
+        
+        $middleware->api(append: [
+            \App\Http\Middleware\SetCrossOriginHeaders::class,
+        ]);
 
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
