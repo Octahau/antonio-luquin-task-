@@ -37,19 +37,35 @@ class TaskController extends Controller
             return response()->json(['message' => 'No autorizado'], 403);
         }
         
+        $user = $request->user();
+        
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'in:pending,in_progress,completed',
             'due_date' => 'nullable|date|after:today',
+            'user_id' => 'nullable|integer|exists:users,id',
         ]);
+        
+        // Determinar el usuario asignado
+        $assignedUserId = $request->user_id;
+        
+        // Solo admin puede asignar tareas a otros usuarios
+        if ($assignedUserId && !$user->hasRole('admin')) {
+            return response()->json(['message' => 'Solo los administradores pueden asignar tareas a otros usuarios'], 403);
+        }
+        
+        // Si no se especifica user_id o no es admin, asignar al usuario actual
+        if (!$assignedUserId) {
+            $assignedUserId = $user->id;
+        }
         
         $task = Task::create([
             'title' => $request->title,
             'description' => $request->description,
             'status' => $request->status ?? 'pending',
             'due_date' => $request->due_date,
-            'user_id' => $request->user()->id,
+            'user_id' => $assignedUserId,
         ]);
         
         return response()->json($task->load('user'), 201);
@@ -88,9 +104,20 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'status' => 'sometimes|in:pending,in_progress,completed',
             'due_date' => 'nullable|date',
+            'user_id' => 'nullable|integer|exists:users,id',
         ]);
         
-        $task->update($request->only(['title', 'description', 'status', 'due_date']));
+        $updateData = $request->only(['title', 'description', 'status', 'due_date']);
+        
+        // Solo admin puede cambiar la asignación de usuario
+        if ($request->has('user_id')) {
+            if (!$user->hasRole('admin')) {
+                return response()->json(['message' => 'Solo los administradores pueden cambiar la asignación de tareas'], 403);
+            }
+            $updateData['user_id'] = $request->user_id;
+        }
+        
+        $task->update($updateData);
         
         return response()->json($task->load('user'));
     }
