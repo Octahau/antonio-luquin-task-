@@ -75,6 +75,16 @@ export const authService = {
     }
   },
 
+  // Obtener lista de usuarios (solo para admin)
+  async getUsers() {
+    try {
+      const response = await api.get('/users')
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  },
+
   // Verificar si el usuario está autenticado
   isAuthenticated() {
     return !!localStorage.getItem('auth_token')

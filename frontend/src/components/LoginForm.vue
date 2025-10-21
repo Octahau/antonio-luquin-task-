@@ -2,10 +2,12 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useToast } from '../composables/useToast'
 import GoogleIcon from './icons/GoogleIcon.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { success, error } = useToast()
 
 // Reactive data
 const email = ref('')
@@ -51,19 +53,27 @@ const handleSubmit = async (e: Event) => {
       password: password.value
     })
 
-    // Redirect to tasks on success
-    router.push('/tasks')
+    // Show success message and redirect
+    success('Bienvenido', 'Has iniciado sesión correctamente')
+    setTimeout(() => {
+      // Redirigir según el rol del usuario
+      if (authStore.isAdmin) {
+        router.push('/admin')
+      } else {
+        router.push('/tasks')
+      }
+    }, 500)
   } catch (error: unknown) {
     console.error('Login error:', error)
     
     // Handle API errors
     const apiError = error as { errors?: Record<string, string>; message?: string }
+    const errorMessage = apiError.message || 'Error al iniciar sesión. Verifica tus credenciales.'
+    
     if (apiError.errors) {
       errors.value = apiError.errors
-    } else if (apiError.message) {
-      errors.value.general = apiError.message
     } else {
-      errors.value.general = 'Error al iniciar sesión. Verifica tus credenciales.'
+      error('Error de autenticación', errorMessage)
     }
   } finally {
     isLoading.value = false

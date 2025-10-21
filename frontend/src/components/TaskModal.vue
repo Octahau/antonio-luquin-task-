@@ -19,22 +19,22 @@
         
         <div class="field" v-if="task.due_date">
           <label>Fecha límite:</label>
-          <p class="due-date">📅 {{ formatDate(task.due_date) }}</p>
+          <p class="due-date"><i class="pi pi-calendar"></i> {{ formatDate(task.due_date) }}</p>
         </div>
         
         <div class="field">
           <label>Creado por:</label>
-          <p class="user-info">👤 {{ task.user?.name }} ({{ task.user?.email }})</p>
+          <p class="user-info"><i class="pi pi-user"></i> {{ task.user?.name }} ({{ task.user?.email }})</p>
         </div>
         
         <div class="field">
           <label>Creado el:</label>
-          <p class="created-date">📅 {{ formatDate(task.created_at) }}</p>
+          <p class="created-date"><i class="pi pi-calendar"></i> {{ formatDate(task.created_at) }}</p>
         </div>
         
         <div v-if="task.updated_at !== task.created_at" class="field">
           <label>Última actualización:</label>
-          <p class="updated-date">🔄 {{ formatDate(task.updated_at) }}</p>
+          <p class="updated-date"><i class="pi pi-refresh"></i> {{ formatDate(task.updated_at) }}</p>
         </div>
       </div>
       
@@ -137,6 +137,30 @@ export default {
     0 0 0 1px rgba(255, 255, 255, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
   animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Scrollbar personalizado */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.6) transparent;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.6);
+  border-radius: 4px;
+  border: none;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.8);
 }
 
 @keyframes modalSlideIn {
@@ -267,6 +291,17 @@ export default {
   border-radius: 0.5rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
   font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.due-date i,
+.user-info i,
+.created-date i,
+.updated-date i {
+  color: var(--primary-blue);
+  font-size: 1rem;
 }
 
 .modal-footer {

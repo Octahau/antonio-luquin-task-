@@ -2,10 +2,12 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useToast } from '../composables/useToast'
 import GoogleIcon from './icons/GoogleIcon.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { success, error } = useToast()
 
 // Reactive data
 const name = ref('')
@@ -68,19 +70,23 @@ const handleSubmit = async (e: Event) => {
       password_confirmation: passwordConfirmation.value
     })
 
-    // Redirect to tasks on success
-    router.push('/tasks')
+    // Show success message and redirect
+    success('¡Registro exitoso!', 'Te has registrado correctamente. Bienvenido a Task Manager')
+    setTimeout(() => {
+      // Los nuevos usuarios se registran como 'viewer' por defecto, así que van a /tasks
+      router.push('/tasks')
+    }, 1000)
   } catch (error: unknown) {
     console.error('Registration error:', error)
     
     // Handle API errors
     const apiError = error as { errors?: Record<string, string>; message?: string }
+    const errorMessage = apiError.message || 'Error al registrarse. Inténtalo de nuevo.'
+    
     if (apiError.errors) {
       errors.value = apiError.errors
-    } else if (apiError.message) {
-      errors.value.general = apiError.message
     } else {
-      errors.value.general = 'Error al registrarse. Inténtalo de nuevo.'
+      error('Error de registro', errorMessage)
     }
   } finally {
     isLoading.value = false

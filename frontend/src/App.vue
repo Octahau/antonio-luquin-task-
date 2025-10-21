@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import ToastContainer from './components/ToastContainer.vue'
 </script>
 
 <template>
   <RouterView />
+  <ToastContainer />
 </template>
 
 <style>
@@ -148,5 +150,124 @@ html, body {
 
 .form-input::placeholder {
   color: var(--gray-400);
+}
+
+/* Estilos globales para opciones de select */
+select option {
+  background: rgba(255, 255, 255, 0.98);
+  color: var(--gray-800);
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  border: none;
+  font-size: 0.95rem;
+}
+
+select option:hover {
+  background: rgba(29, 78, 216, 0.1);
+  color: var(--primary-blue-dark);
+}
+
+select option:checked,
+select option[selected] {
+  background: var(--primary-blue);
+  color: white;
+  font-weight: 600;
+}
+
+/* Estilos globales para el calendario nativo del navegador */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 6px;
+  margin-right: 8px;
+  padding: 10px;
+  background-color: var(--primary-blue);
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3e%3c/rect%3e%3cline x1='16' y1='2' x2='16' y2='6'%3e%3c/line%3e%3cline x1='8' y1='2' x2='8' y2='6'%3e%3c/line%3e%3cline x1='3' y1='10' x2='21' y2='10'%3e%3c/line%3e%3c/svg%3e");
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  background-color: var(--primary-blue-dark);
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Estilos para el contenido del input date */
+input[type="date"]::-webkit-datetime-edit {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  background: transparent;
+}
+
+input[type="date"]::-webkit-datetime-edit-text {
+  color: var(--gray-600);
+  padding: 0 6px;
+  font-weight: 500;
+}
+
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  color: var(--gray-800);
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 0 3px;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+input[type="date"]::-webkit-datetime-edit-month-field:hover,
+input[type="date"]::-webkit-datetime-edit-day-field:hover,
+input[type="date"]::-webkit-datetime-edit-year-field:hover {
+  background: rgba(29, 78, 216, 0.1);
+  color: var(--primary-blue-dark);
+}
+
+/* Estilos para el popup del calendario (solo Chrome/Safari) */
+input[type="date"]::-webkit-calendar-picker-indicator:active {
+  background-color: var(--primary-blue-dark);
+  transform: scale(0.95);
+}
+
+/* Mejoras para el display del calendario */
+input[type="date"] {
+  position: relative;
+  /* Asegurar que el calendario tenga un tamaño consistente */
+  min-width: 150px;
+}
+
+input[type="date"]:focus {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Mejorar la apariencia cuando está deshabilitado */
+input[type="date"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+input[type="date"]:disabled::-webkit-calendar-picker-indicator {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Estilos para diferentes estados del calendario */
+input[type="date"]:valid {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+input[type="date"]:invalid {
+  border-color: rgba(239, 68, 68, 0.3);
 }
 </style>

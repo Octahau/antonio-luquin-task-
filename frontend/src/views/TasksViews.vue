@@ -31,6 +31,7 @@
           v-for="task in tasks" 
           :key="task.id" 
           :task="task"
+          :user="authStore.user"
           @view="viewTask"
           @edit="editTask"
           @delete="deleteTask"
@@ -51,6 +52,18 @@
         @close="closeFormModal"
         @save="handleSaveTask"
       />
+
+      <!-- Modal de confirmación para eliminar -->
+      <ConfirmModal
+        v-if="showConfirmModal"
+        title="Confirmar eliminación"
+        message="¿Estás seguro de que quieres eliminar esta tarea?"
+        :task-title="taskToDelete?.title"
+        confirm-text="Eliminar"
+        :is-loading="isDeleting"
+        @confirm="confirmDelete"
+        @cancel="cancelDelete"
+      />
     </div>
   </template>
   
@@ -58,26 +71,33 @@
 import { ref, onMounted, computed } from 'vue'
 import { useTasksStore } from '../stores/tasks'
 import { useAuthStore } from '../stores/auth'
+import { useToast } from '../composables/useToast'
   import TaskCard from '../components/TaskCard.vue'
   import TaskModal from '../components/TaskModal.vue'
   import TaskFormModal from '../components/TaskFormModal.vue'
+  import ConfirmModal from '../components/ConfirmModal.vue'
   
   export default {
     name: 'TasksView',
     components: {
       TaskCard,
       TaskModal,
-      TaskFormModal
+      TaskFormModal,
+      ConfirmModal
     },
     setup() {
       const tasksStore = useTasksStore()
       const authStore = useAuthStore()
+      const { success, error } = useToast()
       
       const selectedStatus = ref('')
       const showModal = ref(false)
       const showCreateForm = ref(false)
       const selectedTask = ref(null)
       const editingTask = ref(null)
+      const showConfirmModal = ref(false)
+      const taskToDelete = ref(null)
+      const isDeleting = ref(false)
   
       const tasks = computed(() => tasksStore.tasks)
       const isLoading = computed(() => tasksStore.isLoading)
@@ -96,14 +116,44 @@ import { useAuthStore } from '../stores/auth'
         editingTask.value = task
       }
   
-      const deleteTask = async (task) => {
-        if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
-          try {
-            await tasksStore.deleteTask(task.id)
-          } catch (error) {
-            alert('Error al eliminar la tarea')
+      const deleteTask = (task) => {
+        taskToDelete.value = task
+        showConfirmModal.value = true
+      }
+
+      const confirmDelete = async () => {
+        if (!taskToDelete.value) return
+        
+        isDeleting.value = true
+        try {
+          await tasksStore.deleteTask(taskToDelete.value.id)
+          success('Tarea eliminada', 'La tarea se ha eliminado correctamente')
+          showConfirmModal.value = false
+          taskToDelete.value = null
+        } catch (err) {
+          console.error('Error al eliminar tarea:', err)
+          
+          // Manejar errores específicos de permisos
+          if (err.response?.status === 403 || err.status === 403) {
+            const backendMessage = err.response?.data?.message || err.message
+            if (authStore.isViewer) {
+              error('Sin permisos', backendMessage || 'Como usuario viewer, no tienes permisos para eliminar tareas. Solo puedes verlas.')
+            } else {
+              error('Sin permisos', backendMessage || 'No tienes permisos para eliminar esta tarea. Solo puedes eliminar tus propias tareas.')
+            }
+          } else if (err.response?.data?.message || err.message) {
+            error('Error al eliminar', err.response?.data?.message || err.message)
+          } else {
+            error('Error al eliminar', 'No se pudo eliminar la tarea. Inténtalo de nuevo.')
           }
+        } finally {
+          isDeleting.value = false
         }
+      }
+
+      const cancelDelete = () => {
+        showConfirmModal.value = false
+        taskToDelete.value = null
       }
   
       const closeModal = () => {
@@ -120,13 +170,38 @@ import { useAuthStore } from '../stores/auth'
         try {
           if (editingTask.value) {
             await tasksStore.updateTask(editingTask.value.id, taskData)
+            success('Tarea actualizada', 'La tarea se ha actualizado correctamente')
           } else {
             await tasksStore.createTask(taskData)
+            success('Tarea creada', 'La nueva tarea se ha creado exitosamente')
           }
-          closeFormModal()
+          
           await filterTasks()
-        } catch (error) {
-          alert('Error al guardar la tarea')
+          closeFormModal()
+        } catch (err) {
+          console.error('Error al guardar tarea:', err)
+          
+          // Manejar errores específicos de permisos
+          if (err.response?.status === 403 || err.status === 403) {
+            const backendMessage = err.response?.data?.message || err.message
+            if (authStore.isViewer) {
+              if (editingTask.value) {
+                error('Sin permisos', backendMessage || 'Como usuario viewer, no tienes permisos para editar tareas. Solo puedes verlas.')
+              } else {
+                error('Sin permisos', backendMessage || 'Como usuario viewer, no tienes permisos para crear tareas. Solo puedes verlas.')
+              }
+            } else {
+              if (editingTask.value) {
+                error('Sin permisos', backendMessage || 'No tienes permisos para editar esta tarea. Solo puedes editar tus propias tareas.')
+              } else {
+                error('Sin permisos', backendMessage || 'No tienes permisos para crear tareas. Contacta al administrador.')
+              }
+            }
+          } else if (err.response?.data?.message || err.message) {
+            error('Error al guardar', err.response?.data?.message || err.message)
+          } else {
+            error('Error al guardar', 'No se pudo guardar la tarea. Inténtalo de nuevo.')
+          }
         }
       }
   
@@ -146,11 +221,17 @@ import { useAuthStore } from '../stores/auth'
         showCreateForm,
         selectedTask,
         editingTask,
+        showConfirmModal,
+        taskToDelete,
+        isDeleting,
         canCreate,
+        authStore,
         filterTasks,
         viewTask,
         editTask,
         deleteTask,
+        confirmDelete,
+        cancelDelete,
         closeModal,
         closeFormModal,
         handleSaveTask,
@@ -244,10 +325,28 @@ import { useAuthStore } from '../stores/auth'
   }
 
   .status-filter option {
-    background: var(--white);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
     color: var(--gray-800);
     font-weight: 500;
-    padding: 0.5rem;
+    padding: 0.875rem;
+    border-radius: 0.5rem;
+    border: none;
+    margin: 0.25rem 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .status-filter option:hover,
+  .status-filter option:focus,
+  .status-filter option:checked {
+    background: rgba(29, 78, 216, 0.1);
+    color: var(--primary-blue-dark);
+    font-weight: 600;
+  }
+
+  .status-filter option:checked {
+    background: var(--primary-blue);
+    color: white;
   }
   
   .tasks-grid {

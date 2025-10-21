@@ -13,11 +13,11 @@
       
       <div class="task-meta">
         <div v-if="task.due_date" class="due-date">
-          <span class="meta-icon">📅</span>
+          <i class="pi pi-calendar meta-icon"></i>
           <span>{{ formatDate(task.due_date) }}</span>
         </div>
         <div class="created-info">
-          <span class="meta-icon">👤</span>
+          <i class="pi pi-user meta-icon"></i>
           <span>{{ task.user?.name || 'Usuario' }}</span>
         </div>
       </div>
@@ -27,10 +27,18 @@
       <button @click="$emit('view', task)" class="btn-view">
         Ver
       </button>
-      <button @click="$emit('edit', task)" class="btn-edit">
+      <button 
+        v-if="canEdit" 
+        @click="$emit('edit', task)" 
+        class="btn-edit"
+      >
         Editar
       </button>
-      <button @click="$emit('delete', task)" class="btn-delete">
+      <button 
+        v-if="canDelete" 
+        @click="$emit('delete', task)" 
+        class="btn-delete"
+      >
         Eliminar
       </button>
     </div>
@@ -46,6 +54,10 @@ export default {
     task: {
       type: Object,
       required: true
+    },
+    user: {
+      type: Object,
+      default: null
     }
   },
   emits: ['view', 'edit', 'delete'],
@@ -68,14 +80,44 @@ export default {
       return date.toLocaleDateString('es-ES', {
         day: 'numeric',
         month: 'short',
-        year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+        year: 'numeric'
       })
     }
+
+    // Determinar permisos basados en el rol del usuario
+    const userRoles = computed(() => props.user?.roles || [])
+    const isViewer = computed(() => userRoles.value.includes('viewer'))
+    const isAdmin = computed(() => userRoles.value.includes('admin'))
+    const isEditor = computed(() => userRoles.value.includes('editor'))
+
+    const canEdit = computed(() => {
+      // Si no hay usuario disponible, no mostrar botones
+      if (!props.user) return false
+      
+      // Admin puede editar cualquier tarea, editor solo sus propias tareas, viewer no puede editar
+      if (isViewer.value) return false
+      if (isAdmin.value) return true
+      if (isEditor.value) return props.task.user_id === props.user?.id
+      return false
+    })
+
+    const canDelete = computed(() => {
+      // Si no hay usuario disponible, no mostrar botones
+      if (!props.user) return false
+      
+      // Admin puede eliminar cualquier tarea, editor solo sus propias tareas, viewer no puede eliminar
+      if (isViewer.value) return false
+      if (isAdmin.value) return true
+      if (isEditor.value) return props.task.user_id === props.user?.id
+      return false
+    })
     
     return {
       statusText,
       statusClass,
-      formatDate
+      formatDate,
+      canEdit,
+      canDelete
     }
   }
 }
@@ -185,6 +227,9 @@ export default {
 
 .meta-icon {
   font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .task-card-footer {
@@ -204,6 +249,11 @@ export default {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+/* Cuando solo hay un botón (para viewers), que ocupe todo el ancho */
+.task-card-footer .btn-view:only-child {
+  flex: 1;
 }
 
 .btn-view {
